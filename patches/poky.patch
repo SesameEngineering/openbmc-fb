@@ -1,0 +1,87 @@
+diff --git a/bitbake/lib/bb/compat.py b/bitbake/lib/bb/compat.py
+index de1923d28a..88eb72c0e3 100644
+--- a/bitbake/lib/bb/compat.py
++++ b/bitbake/lib/bb/compat.py
+@@ -1,6 +1,7 @@
+ """Code pulled from future python versions, here for compatibility"""
+ 
+-from collections import MutableMapping, KeysView, ValuesView, ItemsView, OrderedDict
++from collections.abc import MutableMapping, KeysView, ValuesView, ItemsView
++from collections import OrderedDict
+ from functools import total_ordering
+ 
+ 
+diff --git a/bitbake/lib/bb/data_smart.py b/bitbake/lib/bb/data_smart.py
+index 54dec973fb..df987bf423 100644
+--- a/bitbake/lib/bb/data_smart.py
++++ b/bitbake/lib/bb/data_smart.py
+@@ -29,7 +29,7 @@ BitBake build tools.
+ # Based on functions from the base bb module, Copyright 2003 Holger Schurig
+ 
+ import copy, re, sys, traceback
+-from collections import MutableMapping
++from collections.abc import MutableMapping
+ import logging
+ import hashlib
+ import bb, bb.codeparser
+diff --git a/bitbake/lib/bb/fetch2/clearcase.py b/bitbake/lib/bb/fetch2/clearcase.py
+index 3a6573d0b2..594d09f80a 100644
+--- a/bitbake/lib/bb/fetch2/clearcase.py
++++ b/bitbake/lib/bb/fetch2/clearcase.py
+@@ -156,18 +156,18 @@ class ClearCase(FetchMethod):
+ 
+         basecmd = "%s %s" % (ud.basecmd, command)
+ 
+-        if command is 'mkview':
++        if command == 'mkview':
+             if not "rcleartool" in ud.basecmd:
+                 # Cleartool needs a -snapshot view
+                 options.append("-snapshot")
+             options.append("-tag %s" % ud.viewname)
+             options.append(ud.viewdir)
+ 
+-        elif command is 'rmview':
++        elif command == 'rmview':
+             options.append("-force")
+             options.append("%s" % ud.viewdir)
+ 
+-        elif command is 'setcs':
++        elif command == 'setcs':
+             options.append("-overwrite")
+             options.append(ud.configspecfile)
+ 
+diff --git a/bitbake/lib/bb/persist_data.py b/bitbake/lib/bb/persist_data.py
+index bef7018614..a3a02131e4 100644
+--- a/bitbake/lib/bb/persist_data.py
++++ b/bitbake/lib/bb/persist_data.py
+@@ -27,7 +27,7 @@ import os.path
+ import sys
+ import warnings
+ from bb.compat import total_ordering
+-from collections import Mapping
++from collections.abc import Mapping
+ import sqlite3
+ 
+ sqlversion = sqlite3.sqlite_version_info
+@@ -44,7 +44,7 @@ if hasattr(sqlite3, 'enable_shared_cache'):
+ 
+ 
+ @total_ordering
+-class SQLTable(collections.MutableMapping):
++class SQLTable(collections.abc.MutableMapping):
+     """Object representing a table/domain in the database"""
+     def __init__(self, cachefile, table):
+         self.cachefile = cachefile
+diff --git a/meta/lib/oe/maketype.py b/meta/lib/oe/maketype.py
+index f88981dd90..ac0074c6d2 100644
+--- a/meta/lib/oe/maketype.py
++++ b/meta/lib/oe/maketype.py
+@@ -96,7 +96,7 @@ for name in dir(types):
+         continue
+ 
+     obj = getattr(types, name)
+-    if not isinstance(obj, collections.Callable):
++    if not isinstance(obj, collections.abc.Callable):
+         continue
+ 
+     register(name, obj)

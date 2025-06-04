@@ -1,0 +1,13 @@
+diff --git a/scripts/gcc-plugins/Kconfig b/scripts/gcc-plugins/Kconfig
+index e383cda05367..db5b44f239ec 100644
+--- a/scripts/gcc-plugins/Kconfig
++++ b/scripts/gcc-plugins/Kconfig
+@@ -7,7 +7,7 @@ config HAVE_GCC_PLUGINS
+ 
+ menuconfig GCC_PLUGINS
+ 	bool "GCC plugins"
+-	depends on HAVE_GCC_PLUGINS
++	depends on HAVE_GCC_PLUGINS && ENABLE_SSP
+ 	depends on CC_IS_GCC
+ 	depends on $(success,test -e $(shell,$(CC) -print-file-name=plugin)/include/plugin-version.h)
+ 	default y
