@@ -25,6 +25,12 @@ ADC_PATH="/sys/devices/platform/ast_adc.0"
 # channel 0 (ADC0_12V)     :  r1:  5.6K; r2:  1.0K; v2: 0mv
 # channel 1 (ADC_P5V_STBY) :  r1:  3.3K; r2:  1.0K; v2: 0mv
 # channel 2 (ADC_P3V3_STBY):  r1:  1.0K; r2:  1.0K; v2: 0mv
+# channels 3-7 (P1V8/P1V53/P0V9/P0V9_E/P1V26) connect directly to the AST2400
+# ADC pins (0-ohm series, no divider; all < 2.5V full-scale), so r1=0, r2=1
+# gives a direct 1:1 reading. Without these lines the driver defaults leave the
+# channels unsampled and sensor-util reports them as 0.000V (lower-critical) --
+# note P1V53 powers the BMC's DDR3 and P1V26 the AST2400 core, so those are
+# never actually 0V on a booted BMC.
 
 config_adc() {
     channel=$1
@@ -40,4 +46,9 @@ config_adc() {
 config_adc 0 5600 1000 0
 config_adc 1 3300 1000 0
 config_adc 2 1000 1000 0
+config_adc 3 0 1 0
+config_adc 4 0 1 0
+config_adc 5 0 1 0
+config_adc 6 0 1 0
+config_adc 7 0 1 0
 
