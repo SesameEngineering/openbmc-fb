@@ -1,0 +1,19 @@
+Subject: [PATCH] lightning: force DDR3 init path (SiP DDR3 mis-trapped as DDR2)
+
+This board's AST2400 SiP appears to carry DDR3, but the DRAM-type hardware
+trap (reg 0x1e6e2070 bit[24]) reads back as DDR2, so U-Boot runs ddr2_init and
+fails all DDR calibration (endless "CBR..." loop). Skip the DDR2 branch so the
+type check always falls through to ddr3_init. Experimental board bring-up
+change; scoped to the lightning u-boot via bbappend.
+
+--- a/arch/arm/mach-aspeed/platform_g4.S
++++ b/arch/arm/mach-aspeed/platform_g4.S
+@@ -880,7 +880,7 @@
+     bic r1, r1, #0xFEFFFFFF                      @ bit[24]=1 => DDR2
+     mov r2, r1, lsr #24
+     cmp r2, #0x01
+-    beq ddr2_init
++    @ LIGHTNING(force-ddr3): was 'beq ddr2_init'; SiP DDR3 mis-trapped as DDR2
+     b   ddr3_init
+ .LTORG
+ 
