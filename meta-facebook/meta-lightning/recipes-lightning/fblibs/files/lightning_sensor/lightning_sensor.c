@@ -51,6 +51,9 @@
 #define I2C_ADDR_FCB_HSC  0x22
 #define I2C_ADDR_NCT7904  0x2d
 
+/* VSEN23_MD and VSEN45_MD = thermal diode, as set by init_sensor.sh */
+#define NCT7904_VT_ADC_MD_TEMP 0x05
+
 #define ADC_DIR "/sys/devices/platform/ast_adc.0"
 #define ADC_VALUE "adc%d_value"
 
@@ -94,6 +97,7 @@ enum tmp75_pdpb_sensors {
 };
 
 enum nct7904_registers {
+  NCT7904_VT_ADC_MD = 0x2E,
   NCT7904_TEMP_CH1 = 0x42,
   NCT7904_TEMP_CH2 = 0x46,
   NCT7904_VSEN6 = 0x4A,
@@ -979,6 +983,23 @@ read_nct7904_value(uint8_t reg, char *device, uint8_t addr, float *value) {
         }
       }
       msleep(100);
+    }
+  }
+
+  /*
+   * VSEN23/VSEN45 are put in thermal diode mode once by init_sensor.sh. If the
+   * FCB loses power while the BMC stays up, the NCT7904 resets to voltage mode
+   * and the BJT temps read back as ~126C. Restore the mode and drop this sample,
+   * since the latched value is still a voltage reading.
+   */
+  if (reg == NCT7904_TEMP_CH1 || reg == NCT7904_TEMP_CH2) {
+    ret = i2c_smbus_read_byte_data(dev, NCT7904_VT_ADC_MD);
+    if (ret >= 0 && ret != NCT7904_VT_ADC_MD_TEMP) {
+      syslog(LOG_WARNING, "%s: NCT7904 VT_ADC_MD was 0x%x, restoring 0x%x",
+             __func__, ret, NCT7904_VT_ADC_MD_TEMP);
+      i2c_smbus_write_byte_data(dev, NCT7904_VT_ADC_MD, NCT7904_VT_ADC_MD_TEMP);
+      close(dev);
+      return -1;
     }
   }
 
