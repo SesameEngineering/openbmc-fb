@@ -125,12 +125,17 @@ do_compile () {
     unset CFLAGS
     unset CPPFLAGS
 
-    if [ ! -e ${B}/.scmversion -a ! -e ${UNPACKDIR}/.scmversion ]
-    then
-        echo ${UBOOT_LOCALVERSION} > ${B}/.scmversion
-        echo ${OPENBMC_VERSION} >> ${B}/.scmversion
-        echo ${UBOOT_LOCALVERSION} > ${UNPACKDIR}/.scmversion
-        echo ${OPENBMC_VERSION} >> ${UNPACKDIR}/.scmversion
+    # Always (re)write .scmversion in the source tree, which is the only place
+    # u-boot's scripts/setlocalversion looks.  The old guard also tested
+    # ${UNPACKDIR}/.scmversion; on rocko UNPACKDIR is WORKDIR, which survives
+    # re-unpacks, so after the first build the guard always skipped, git/ had
+    # no .scmversion, and the banner fell back to `git describe` of the patched
+    # u-boot tree ("2016.07-00258-g<sha>-dirty").  fw-util parses the platform
+    # name from "U-Boot 20xx.xx <platform>-..." and rejected the image.
+    echo ${UBOOT_LOCALVERSION} > ${S}/.scmversion
+    echo ${OPENBMC_VERSION} >> ${S}/.scmversion
+    if [ "${B}" != "${S}" ]; then
+        cp ${S}/.scmversion ${B}/.scmversion
     fi
 
     if [ "x${UBOOT_CONFIG}" != "x" ]
